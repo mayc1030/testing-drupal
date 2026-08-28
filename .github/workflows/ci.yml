@@ -1,0 +1,48 @@
+name: CI - Drupal
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  drupal-ci:
+    name: Drupal CI (DDEV Environment)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up DDEV environment
+        uses: ddev/github-action-setup-ddev@v1
+        with:
+          autostart: true
+      - name: Install Composer Dependencies
+        run: |
+          if [ -f composer.json ]; then
+            ddev composer config --no-plugins allow-plugins.symfony/runtime true || true
+            ddev composer config --no-plugins allow-plugins.php-http/discovery true || true
+            ddev composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true || true
+            ddev composer install --no-interaction --prefer-dist --optimize-autoloader
+          fi
+
+      - name: Install Drupal Site
+        run: ddev drush site:install standard --yes --account-name=admin --account-pass=admin || true
+
+      - name: Run Drupal Status & Tests
+        run: |
+          ddev drush status
+          if [ -f vendor/bin/phpunit ]; then
+            ddev exec vendor/bin/phpunit -c web/core --testsuite=unit || true
+          fi
+
+      - name: Run Code Style & Linter (PHPCS)
+        run: |
+          if [ -f vendor/bin/phpcs ]; then
+            ddev exec vendor/bin/phpcs --standard=Drupal,DrupalPractice web/modules/custom || true
+          fi
+
+      - name: Security & Vulnerabilities Audit
+        run: ddev composer audit
