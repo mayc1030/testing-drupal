@@ -1,0 +1,5 @@
+name: 'Hola Mundo'
+type: module
+description: 'Módulo personalizado para mostrar un mensaje de Hola Mundo mediante un controlador.'
+package: 'Custom'
+core_version_requirement: ^10 || ^11

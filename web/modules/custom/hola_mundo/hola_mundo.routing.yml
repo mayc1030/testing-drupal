@@ -1,0 +1,7 @@
+hola_mundo.content:
+  path: '/hola-mundo'
+  defaults:
+    _controller: '\Drupal\hola_mundo\Controller\HolaMundoController::build'
+    _title: 'Hola Mundo'
+  requirements:
+    _permission: 'access content'
